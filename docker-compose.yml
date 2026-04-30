@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # MySQL Database
+  # ============================================
+  mysql:
+    image: mysql:8.0
+    container_name: saludboyaca-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: saludboyaca
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/saludboyaca.sql:/docker-entrypoint-initdb.d/1-schema.sql
+    networks:
+      - saludboyaca-network
+
+  # ============================================
+  # Aplicación Java
+  # ============================================
+  app:
+    build: .
+    container_name: saludboyaca-app
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: "jdbc:mysql://mysql:3306/saludboyaca?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+      DB_USER: "root"
+      DB_PASS: "root123"
+      EMAIL_REMIT: "tucorreo@gmail.com"
+      EMAIL_PASS: "xxxx xxxx xxxx xxxx"
+    networks:
+      - saludboyaca-network
+
+volumes:
+  mysql_data:
+
+networks:
+  saludboyaca-network:
+    driver: bridge

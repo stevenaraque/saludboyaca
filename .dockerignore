@@ -1,0 +1,25 @@
+# Git
+.git
+.gitignore
+
+# Maven
+target/
+*.war
+
+# IDE
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+nbproject/
+build/
+
+# Sistema
+*.md
+*.txt
+!Dockerfile
+!docker-compose.yml
+
+# Logs
+*.log
