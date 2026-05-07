@@ -1,4 +1,5 @@
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\CitaDAO.java
+C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\DashboardDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\EspecialidadDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\HorarioDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\OTPTokenDAO.java
@@ -14,6 +15,8 @@ C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\se
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\ConsultaCitaServlet.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\DashboardServlet.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\DescargarComprobanteServlet.java
+C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\HorarioServlet.java
+C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\IdiomaServlet.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\LoginServlet.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\LogoutServlet.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\servlet\OTPServlet.java

@@ -65,11 +65,36 @@ public class OTPTokenDAO {
         }
     }
 
+    public boolean invalidarAnteriores(int idUsuario) {
+        String sql = "UPDATE otp_tokens SET usado = 1 WHERE id_usuario = ? AND usado = 0";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, idUsuario);
+            stmt.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            System.err.println("Error en invalidarAnteriores: " + ex.getMessage());
+            return false;
+        } finally {
+            cerrarRecursos(null, stmt, conn);
+        }
+    }
+
     private void cerrarRecursos(ResultSet rs, PreparedStatement stmt, Connection conn) {
         try {
-            if (rs != null) rs.close();
-            if (stmt != null) stmt.close();
-            if (conn != null) Conexion.closeConnection(conn);
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                Conexion.closeConnection(conn);
+            }
         } catch (SQLException ex) {
             System.err.println("Error cerrando recursos: " + ex.getMessage());
         }

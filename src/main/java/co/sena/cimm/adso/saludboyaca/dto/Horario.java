@@ -5,6 +5,7 @@ import java.sql.Time;
 public class Horario {
     private int id;
     private int idMedico;
+    private String nombreMedico;
     private int diaSemana;
     private Time horaInicio;
     private Time horaFin;
@@ -17,6 +18,9 @@ public class Horario {
 
     public int getIdMedico() { return idMedico; }
     public void setIdMedico(int idMedico) { this.idMedico = idMedico; }
+
+    public String getNombreMedico() { return nombreMedico; }
+    public void setNombreMedico(String nombreMedico) { this.nombreMedico = nombreMedico; }
 
     public int getDiaSemana() { return diaSemana; }
     public void setDiaSemana(int diaSemana) { this.diaSemana = diaSemana; }

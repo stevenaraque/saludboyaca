@@ -4,6 +4,7 @@ import java.sql.Time;
 import java.util.Date;
 
 public class Cita {
+
     private int id;
     private int idPaciente;
     private int idMedico;
@@ -15,53 +16,135 @@ public class Cita {
     private String observaciones;
     private Date fechaRegistro;
     private int idRegistradoPor;
+    // Agregar este campo junto a los otros campos desnormalizados
+    private String documentoPaciente;
+
+// Agregar estos métodos después de setNombrePaciente
+    public String getDocumentoPaciente() {
+        return documentoPaciente;
+    }
+
+    public void setDocumentoPaciente(String documentoPaciente) {
+        this.documentoPaciente = documentoPaciente;
+    }
 
     // Campos desnormalizados para mostrar en JSP
     private String nombrePaciente;
     private String nombreMedico;
     private String nombreEspecialidad;
 
-    public Cita() {}
+    public Cita() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public int getIdPaciente() { return idPaciente; }
-    public void setIdPaciente(int idPaciente) { this.idPaciente = idPaciente; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public int getIdMedico() { return idMedico; }
-    public void setIdMedico(int idMedico) { this.idMedico = idMedico; }
+    public int getIdPaciente() {
+        return idPaciente;
+    }
 
-    public int getIdEspecialidad() { return idEspecialidad; }
-    public void setIdEspecialidad(int idEspecialidad) { this.idEspecialidad = idEspecialidad; }
+    public void setIdPaciente(int idPaciente) {
+        this.idPaciente = idPaciente;
+    }
 
-    public Date getFechaCita() { return fechaCita; }
-    public void setFechaCita(Date fechaCita) { this.fechaCita = fechaCita; }
+    public int getIdMedico() {
+        return idMedico;
+    }
 
-    public Time getHoraCita() { return horaCita; }
-    public void setHoraCita(Time horaCita) { this.horaCita = horaCita; }
+    public void setIdMedico(int idMedico) {
+        this.idMedico = idMedico;
+    }
 
-    public String getMotivo() { return motivo; }
-    public void setMotivo(String motivo) { this.motivo = motivo; }
+    public int getIdEspecialidad() {
+        return idEspecialidad;
+    }
 
-    public String getEstado() { return estado; }
-    public void setEstado(String estado) { this.estado = estado; }
+    public void setIdEspecialidad(int idEspecialidad) {
+        this.idEspecialidad = idEspecialidad;
+    }
 
-    public String getObservaciones() { return observaciones; }
-    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
+    public Date getFechaCita() {
+        return fechaCita;
+    }
 
-    public Date getFechaRegistro() { return fechaRegistro; }
-    public void setFechaRegistro(Date fechaRegistro) { this.fechaRegistro = fechaRegistro; }
+    public void setFechaCita(Date fechaCita) {
+        this.fechaCita = fechaCita;
+    }
 
-    public int getIdRegistradoPor() { return idRegistradoPor; }
-    public void setIdRegistradoPor(int idRegistradoPor) { this.idRegistradoPor = idRegistradoPor; }
+    public Time getHoraCita() {
+        return horaCita;
+    }
 
-    public String getNombrePaciente() { return nombrePaciente; }
-    public void setNombrePaciente(String nombrePaciente) { this.nombrePaciente = nombrePaciente; }
+    public void setHoraCita(Time horaCita) {
+        this.horaCita = horaCita;
+    }
 
-    public String getNombreMedico() { return nombreMedico; }
-    public void setNombreMedico(String nombreMedico) { this.nombreMedico = nombreMedico; }
+    public String getMotivo() {
+        return motivo;
+    }
 
-    public String getNombreEspecialidad() { return nombreEspecialidad; }
-    public void setNombreEspecialidad(String nombreEspecialidad) { this.nombreEspecialidad = nombreEspecialidad; }
+    public void setMotivo(String motivo) {
+        this.motivo = motivo;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
+    }
+
+    public Date getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(Date fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
+    }
+
+    public int getIdRegistradoPor() {
+        return idRegistradoPor;
+    }
+
+    public void setIdRegistradoPor(int idRegistradoPor) {
+        this.idRegistradoPor = idRegistradoPor;
+    }
+
+    public String getNombrePaciente() {
+        return nombrePaciente;
+    }
+
+    public void setNombrePaciente(String nombrePaciente) {
+        this.nombrePaciente = nombrePaciente;
+    }
+
+    public String getNombreMedico() {
+        return nombreMedico;
+    }
+
+    public void setNombreMedico(String nombreMedico) {
+        this.nombreMedico = nombreMedico;
+    }
+
+    public String getNombreEspecialidad() {
+        return nombreEspecialidad;
+    }
+
+    public void setNombreEspecialidad(String nombreEspecialidad) {
+        this.nombreEspecialidad = nombreEspecialidad;
+    }
 }

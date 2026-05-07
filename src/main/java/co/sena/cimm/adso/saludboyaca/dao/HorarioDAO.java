@@ -8,8 +8,35 @@ import java.util.List;
 
 public class HorarioDAO {
 
+    public List<Horario> listarTodos() {
+        String sql = "SELECT h.*, CONCAT(u.nombres, ' ', u.apellidos) as nombre_medico " +
+                     "FROM horarios h JOIN usuarios u ON h.id_medico = u.id " +
+                     "ORDER BY h.id_medico, h.dia_semana, h.hora_inicio";
+        List<Horario> lista = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(sql);
+            rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                lista.add(mapearHorario(rs));
+            }
+        } catch (SQLException ex) {
+            System.err.println("Error en listarTodos: " + ex.getMessage());
+        } finally {
+            cerrarRecursos(rs, stmt, conn);
+        }
+        return lista;
+    }
+
     public List<Horario> listarPorMedico(int idMedico) {
-        String sql = "SELECT * FROM horarios WHERE id_medico = ? ORDER BY dia_semana, hora_inicio";
+        String sql = "SELECT h.*, CONCAT(u.nombres, ' ', u.apellidos) as nombre_medico " +
+                     "FROM horarios h JOIN usuarios u ON h.id_medico = u.id " +
+                     "WHERE h.id_medico = ? ORDER BY h.dia_semana, h.hora_inicio";
         List<Horario> lista = new ArrayList<>();
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -32,16 +59,11 @@ public class HorarioDAO {
         return lista;
     }
 
-    public List<Horario> horasDisponibles(int idMedico, java.sql.Date fecha) {
-        // Este método es más complejo, lo completamos después
-        // Por ahora devuelve los horarios del médico
-        return listarPorMedico(idMedico);
-    }
-
     private Horario mapearHorario(ResultSet rs) throws SQLException {
         Horario h = new Horario();
         h.setId(rs.getInt("id"));
         h.setIdMedico(rs.getInt("id_medico"));
+        h.setNombreMedico(rs.getString("nombre_medico"));
         h.setDiaSemana(rs.getInt("dia_semana"));
         h.setHoraInicio(rs.getTime("hora_inicio"));
         h.setHoraFin(rs.getTime("hora_fin"));

@@ -2,8 +2,13 @@ package co.sena.cimm.adso.saludboyaca.servlet;
 
 import co.sena.cimm.adso.saludboyaca.dao.CitaDAO;
 import co.sena.cimm.adso.saludboyaca.dto.Cita;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.List;
+import javax.net.ssl.HttpsURLConnection;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -25,6 +30,14 @@ public class ConsultaCitaServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
+        // Mantener el idioma si viene por parámetro
+        String lang = request.getParameter("lang");
+        if (lang != null) {
+            HttpSession session = request.getSession();
+            session.setAttribute("lang", lang);
+            session.setAttribute("locale", lang);
+        }
+        
         request.setAttribute("menu", "consulta");
         request.getRequestDispatcher("/views/consulta_cita.jsp").forward(request, response);
     }
@@ -37,14 +50,21 @@ public class ConsultaCitaServlet extends HttpServlet {
         
         String documento = request.getParameter("documento");
         String captchaInput = request.getParameter("captcha");
+        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
         
         HttpSession session = request.getSession();
         String captchaSession = (String) session.getAttribute("captchaCode");
         
-        String lang = (String) session.getAttribute("lang");
-        if (lang == null) lang = "es";
+        // Validar Google reCAPTCHA v2
+        boolean recaptchaValido = verificarRecaptcha(gRecaptchaResponse);
+        if (!recaptchaValido) {
+            request.setAttribute("error", "recaptcha.invalido");
+            request.setAttribute("documento", documento);
+            request.getRequestDispatcher("/views/consulta_cita.jsp").forward(request, response);
+            return;
+        }
         
-        // Validar CAPTCHA
+        // Validar CAPTCHA propio
         if (captchaSession == null || !captchaSession.equalsIgnoreCase(captchaInput)) {
             request.setAttribute("error", "consulta.captcha.error");
             request.setAttribute("documento", documento);
@@ -60,5 +80,47 @@ public class ConsultaCitaServlet extends HttpServlet {
         request.setAttribute("resultado", true);
         
         request.getRequestDispatcher("/views/consulta_cita.jsp").forward(request, response);
+    }
+    
+    // Método para verificar reCAPTCHA con Google (SIN librerías externas)
+    private boolean verificarRecaptcha(String gRecaptchaResponse) {
+        if (gRecaptchaResponse == null || gRecaptchaResponse.isEmpty()) {
+            return false;
+        }
+        
+        String url = "https://www.google.com/recaptcha/api/siteverify";
+        String secretKey = "6LdlRNMsAAAAAK84WJUMQXb1TPR5ugpdw72oF4bk";
+        
+        try {
+            URL obj = new URL(url);
+            HttpsURLConnection con = (HttpsURLConnection) obj.openConnection();
+            
+            con.setRequestMethod("POST");
+            con.setDoOutput(true);
+            
+            String postParams = "secret=" + secretKey + "&response=" + gRecaptchaResponse;
+            
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            wr.writeBytes(postParams);
+            wr.flush();
+            wr.close();
+            
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder respuesta = new StringBuilder();
+            
+            while ((inputLine = in.readLine()) != null) {
+                respuesta.append(inputLine);
+            }
+            in.close();
+            
+            // Parseo manual SIN librería JSON
+            String json = respuesta.toString();
+            return json.contains("\"success\": true");
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

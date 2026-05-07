@@ -72,7 +72,7 @@ public class CitaDAO {
     }
 
     public List<Cita> listarTodas() {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, " +
+        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
                      "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
@@ -83,7 +83,7 @@ public class CitaDAO {
     }
 
     public List<Cita> listarPorPaciente(String documento) {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, " +
+        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
                      "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
@@ -114,7 +114,7 @@ public class CitaDAO {
     }
 
     public Cita buscarPorId(int id) {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, " +
+        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
                      "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
@@ -167,7 +167,7 @@ public class CitaDAO {
         return lista;
     }
     
-        public boolean actualizar(Cita c) {
+    public boolean actualizar(Cita c) {
         String sql = "UPDATE citas SET id_paciente=?, id_medico=?, id_especialidad=?, fecha_cita=?, hora_cita=?, motivo=? WHERE id=?";
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -208,6 +208,7 @@ public class CitaDAO {
 
         // Campos desnormalizados del JOIN
         c.setNombrePaciente(rs.getString("nom_paciente") + " " + rs.getString("ape_paciente"));
+        c.setDocumentoPaciente(rs.getString("documento_paciente"));
         c.setNombreMedico(rs.getString("nom_medico") + " " + rs.getString("ape_medico"));
         c.setNombreEspecialidad(rs.getString("nom_especialidad"));
 

@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 import java.util.Locale;
+import java.util.concurrent.*;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -31,71 +32,97 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        // Si ya está logueado y verificado, ir al dashboard
+
         HttpSession session = request.getSession(false);
-        if (session != null && session.getAttribute("usuario") != null 
+        if (session != null && session.getAttribute("usuario") != null
                 && Boolean.TRUE.equals(session.getAttribute("otpVerificado"))) {
             response.sendRedirect(request.getContextPath() + "/dashboard");
             return;
         }
-        
+
         request.getRequestDispatcher("/views/login.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
+        long inicio = System.currentTimeMillis();
         
-        String username = request.getParameter("username");
-        String password = request.getParameter("password");
-        
-        HttpSession session = request.getSession();
-        String lang = (String) session.getAttribute("lang");
-        if (lang == null) lang = "es";
-        
-        ResourceBundle rb = ResourceBundle.getBundle("messages", new Locale(lang));
-        
-        // Validar credenciales
-        Usuario usuario = usuarioDAO.validarLogin(username, password);
-        
-        if (usuario != null) {
-            // Credenciales válidas → generar OTP
-            String otp = OTPService.generarOTP();
-            long timestamp = System.currentTimeMillis();
-            Timestamp expiraEn = OTPService.calcularExpiracion();
-            
-            // Guardar OTP en base de datos
-            otpTokenDAO.insertar(usuario.getId(), otp, expiraEn);
-            
-            // Guardar datos en sesión (sin otpVerificado aún)
-            session.setAttribute("usuario", usuario);
-            session.setAttribute("usuarioId", usuario.getId());
-            session.setAttribute("usuarioNombre", usuario.getNombreCompleto());
-            session.setAttribute("usuarioRol", usuario.getRol());
-            session.setAttribute("otpCodigo", otp);
-            session.setAttribute("otpTimestamp", timestamp);
-            session.setAttribute("otpEmail", usuario.getEmail());
-            session.setAttribute("otpVerificado", false);
-            
-            // Preparar y enviar correo
-            String asunto = rb.getString("otp.email.asunto");
-            String cuerpo = MessageFormat.format(rb.getString("otp.email.cuerpo"), otp);
-            
-            try {
-                OTPService.enviarOTP(usuario.getEmail(), otp, asunto, cuerpo);
-            } catch (Exception ex) {
-                System.err.println("Error enviando OTP: " + ex.getMessage());
-                // En desarrollo, mostrar el OTP en consola
-                System.out.println("===== OTP PARA PRUEBAS: " + otp + " =====");
+        try {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+
+            System.out.println("=== LOGIN POST === username: " + username);
+
+            HttpSession session = request.getSession();
+            String lang = (String) session.getAttribute("lang");
+            if (lang == null) {
+                lang = "es";
             }
-            
-            // Redirigir a verificación OTP
-            response.sendRedirect(request.getContextPath() + "/otp");
-            
-        } else {
-            // Credenciales incorrectas
-            request.setAttribute("error", rb.getString("login.error.credenciales"));
+
+            ResourceBundle rb = ResourceBundle.getBundle("messages", new Locale(lang));
+
+            System.out.println("Validando credenciales...");
+            Usuario usuario = usuarioDAO.validarLogin(username, password);
+            System.out.println("Validacion: " + (usuario != null ? "OK" : "FALLIDO"));
+
+            if (usuario != null) {
+                String otp = OTPService.generarOTP();
+                long timestamp = System.currentTimeMillis();
+                Timestamp expiraEn = OTPService.calcularExpiracion();
+
+                System.out.println("Guardando OTP en BD...");
+                otpTokenDAO.insertar(usuario.getId(), otp, expiraEn);
+
+                session.setAttribute("usuario", usuario);
+                session.setAttribute("usuarioId", usuario.getId());
+                session.setAttribute("usuarioNombre", usuario.getNombreCompleto());
+                session.setAttribute("usuarioRol", usuario.getRol());
+                session.setAttribute("otpCodigo", otp);
+                session.setAttribute("otpTimestamp", timestamp);
+                session.setAttribute("otpEmail", usuario.getEmail());
+                session.setAttribute("otpVerificado", false);
+
+                String asunto = rb.getString("otp.email.asunto");
+                String cuerpo = MessageFormat.format(rb.getString("otp.email.cuerpo"), otp);
+
+                // === INTENTAR ENVIAR CORREO (NO BLOQUEANTE, NO CRITICO) ===
+                final String emailDestino = usuario.getEmail();
+                final String otpFinal = otp;
+                final String asuntoFinal = asunto;
+                final String cuerpoFinal = cuerpo;
+
+                new Thread(() -> {
+                    try {
+                        System.out.println("[EMAIL] Intentando enviar a: " + emailDestino);
+                        OTPService.enviarOTP(emailDestino, otpFinal, asuntoFinal, cuerpoFinal);
+                        System.out.println("[EMAIL] ✅ Enviado correctamente");
+                    } catch (Exception ex) {
+                        System.err.println("[EMAIL] ⚠️ No se pudo enviar: " + ex.getClass().getSimpleName());
+                        // No es critico, el OTP esta en pantalla
+                    }
+                }).start();
+
+                // Guardar OTP en sesion para mostrar en pantalla
+                session.setAttribute("otpMostrarEnPantalla", otp);
+
+                long duracion = System.currentTimeMillis() - inicio;
+                System.out.println("Login en " + duracion + "ms. OTP: " + otp);
+                
+                response.sendRedirect(request.getContextPath() + "/otp");
+                return;
+
+            } else {
+                request.setAttribute("error", rb.getString("login.error.credenciales"));
+                request.getRequestDispatcher("/views/login.jsp").forward(request, response);
+                return;
+            }
+
+        } catch (Exception e) {
+            System.err.println("ERROR CRITICO: " + e.getMessage());
+            e.printStackTrace();
+            request.setAttribute("error", "Error del servidor: " + e.getClass().getSimpleName());
             request.getRequestDispatcher("/views/login.jsp").forward(request, response);
         }
     }
