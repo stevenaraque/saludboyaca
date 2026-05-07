@@ -76,58 +76,61 @@ public class CitaServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    
+    request.setCharacterEncoding("UTF-8");
+    String idParam = request.getParameter("id");
+    
+    Cita cita = new Cita();
+    
+    try {
+        cita.setIdPaciente(Integer.parseInt(request.getParameter("pacienteId")));
+        cita.setIdMedico(Integer.parseInt(request.getParameter("medicoId")));
+        cita.setIdEspecialidad(Integer.parseInt(request.getParameter("especialidadId")));
         
-        request.setCharacterEncoding("UTF-8");
-        String idParam = request.getParameter("id");
-        
-        Cita cita = new Cita();
-        
-        try {
-            cita.setIdPaciente(Integer.parseInt(request.getParameter("idPaciente")));
-            cita.setIdMedico(Integer.parseInt(request.getParameter("idMedico")));
-            cita.setIdEspecialidad(Integer.parseInt(request.getParameter("idEspecialidad")));
-            
-            String fechaStr = request.getParameter("fechaCita");
-            if (fechaStr != null && !fechaStr.isEmpty()) {
-                cita.setFechaCita(dateFormat.parse(fechaStr));
-            }
-            
-            String horaStr = request.getParameter("horaCita");
-            if (horaStr != null && !horaStr.isEmpty()) {
-                cita.setHoraCita(Time.valueOf(horaStr + ":00"));
-            }
-            
-        } catch (ParseException | NumberFormatException e) {
-            request.setAttribute("error", "Datos invalidos");
-            mostrarFormulario(request, response, cita);
-            return;
+        String fechaStr = request.getParameter("fechaCita");
+        if (fechaStr != null && !fechaStr.isEmpty()) {
+            cita.setFechaCita(dateFormat.parse(fechaStr));
         }
         
-        cita.setMotivo(request.getParameter("motivo"));
-        cita.setEstado("PROGRAMADA"); // Por defecto al crear
-        
-        HttpSession session = request.getSession();
-        Usuario usuario = (Usuario) session.getAttribute("usuario");
-        cita.setIdRegistradoPor(usuario.getId());
-        
-        boolean exito;
-        
-        if (idParam != null && !idParam.isEmpty()) {
-            cita.setId(Integer.parseInt(idParam));
-            exito = citaDAO.actualizar(cita); // Necesitarías agregar este método al DAO
-        } else {
-            exito = citaDAO.insertar(cita);
+        String horaStr = request.getParameter("horaCita");
+        if (horaStr != null && !horaStr.isEmpty()) {
+            cita.setHoraCita(Time.valueOf(horaStr + ":00"));
         }
         
-        if (exito) {
-            response.sendRedirect(request.getContextPath() + "/citas");
-        } else {
-            request.setAttribute("error", "Error al guardar la cita");
-            mostrarFormulario(request, response, cita);
-        }
+    } catch (ParseException | NumberFormatException e) {
+        request.setAttribute("error", "Datos invalidos: " + e.getMessage());
+        mostrarFormulario(request, response, cita);
+        return;
     }
+    
+    cita.setMotivo(request.getParameter("motivo"));
+    
+    // CORREGIDO: respetar el estado enviado desde el formulario
+    String estado = request.getParameter("estado");
+    cita.setEstado(estado != null && !estado.isEmpty() ? estado : "PROGRAMADA");
+    
+    HttpSession session = request.getSession();
+    Usuario usuario = (Usuario) session.getAttribute("usuario");
+    cita.setIdRegistradoPor(usuario.getId());
+    
+    boolean exito;
+    
+    if (idParam != null && !idParam.isEmpty()) {
+        cita.setId(Integer.parseInt(idParam));
+        exito = citaDAO.actualizar(cita);
+    } else {
+        exito = citaDAO.insertar(cita);
+    }
+    
+    if (exito) {
+        response.sendRedirect(request.getContextPath() + "/citas");
+    } else {
+        request.setAttribute("error", "Error al guardar la cita");
+        mostrarFormulario(request, response, cita);
+    }
+}
 
     private void listarCitas(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {

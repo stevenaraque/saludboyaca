@@ -15,13 +15,68 @@
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-        <!-- reCAPTCHA con renderizado explicito -->
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <!-- reCAPTCHA solo se carga si NO hay resultados -->
+        <c:if test="${not resultado}">
+            <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        </c:if>
         <link href="${pageContext.request.contextPath}/resources/css/saludboyaca.css" rel="stylesheet">
+
+        <style>
+            /* ── Botón PDF ── */
+            .btn-pdf {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 5px 12px;
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: #fff;
+                background: linear-gradient(135deg, #00324D, #005580);
+                border: none;
+                border-radius: 8px;
+                text-decoration: none;
+                transition: opacity 0.2s, transform 0.15s;
+                white-space: nowrap;
+            }
+            .btn-pdf:hover {
+                opacity: 0.88;
+                transform: translateY(-1px);
+                color: #fff;
+            }
+            .btn-pdf i { font-size: 0.75rem; }
+
+            /* ── Botón nueva consulta ── */
+            .btn-nueva-consulta {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 10px 22px;
+                font-size: 0.9rem;
+                font-weight: 600;
+                color: #fff;
+                background: var(--color-primario, #39A900);
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: opacity 0.2s, transform 0.15s;
+                margin-top: 18px;
+            }
+            .btn-nueva-consulta:hover {
+                opacity: 0.88;
+                transform: translateY(-1px);
+            }
+
+            /* ── Columna acciones en tabla ── */
+            .table-saludboyaca th.col-acciones,
+            .table-saludboyaca td.col-acciones {
+                text-align: center;
+                width: 130px;
+            }
+        </style>
     </head>
     <body>
 
-        <!-- SELECTOR DE IDIOMA CON data-lang PARA AJAX -->
+        <!-- SELECTOR DE IDIOMA -->
         <div class="lang-bar-fixed">
             <button type="button" class="lang-btn ${sessionScope.lang == 'es' ? 'active' : ''}" data-lang="es">🇨🇴 ES</button>
             <button type="button" class="lang-btn ${sessionScope.lang == 'en' ? 'active' : ''}" data-lang="en">🇺🇸 EN</button>
@@ -37,75 +92,86 @@
                 </div>
 
                 <div class="public-card-body">
-                    <p class="consulta-intro">
-                        <fmt:message key="consulta.instruccion"/>
-                    </p>
 
-                    <!-- Errores -->
-                    <c:if test="${not empty error}">
-                        <div class="alert alert-danger animate-fade-in-up" style="margin-bottom: 16px;">
-                            <i class="fas fa-circle-exclamation"></i>
-                            <fmt:message key="${error}"/>
-                        </div>
-                    </c:if>
+                    <!-- ============================================================
+                         FORMULARIO: solo se muestra cuando NO hay resultados
+                    ============================================================ -->
+                    <c:if test="${not resultado}">
 
-                    <!-- Formulario -->
-                    <form action="${pageContext.request.contextPath}/consulta" method="post" id="formConsulta">
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-id-card"></i>
-                                <fmt:message key="consulta.documento"/>
-                            </label>
-                            <input type="text" name="documento" class="form-control"
-                                   value="${documento}" required
-                                   placeholder="<fmt:message key='consulta.placeholder.documento'/>">
-                        </div>
+                        <p class="consulta-intro">
+                            <fmt:message key="consulta.instruccion"/>
+                        </p>
 
-                        <div class="form-group">
-                            <label class="form-label">
-                                <i class="fas fa-shield-halved"></i>
-                                <fmt:message key="consulta.captcha"/>
-                            </label>
-                            <div class="captcha-container">
-                                <div class="captcha-img-wrapper">
-                                    <img src="${pageContext.request.contextPath}/captcha"
-                                         alt="CAPTCHA" class="captcha-img"
-                                         onclick="this.src = '${pageContext.request.contextPath}/captcha?' + Date.now()"
-                                         title="<fmt:message key='consulta.title.recargar'/>">
-                                </div>
-                                <div class="captcha-input-wrapper" style="flex: 1;">
-                                    <input type="text" name="captcha" class="form-control captcha-input"
-                                           maxlength="6" required
-                                           placeholder="<fmt:message key='consulta.placeholder.captcha'/>">
-                                    <div class="captcha-hint">
-                                        <i class="fas fa-rotate" style="font-size: 0.7rem;"></i>
-                                        <fmt:message key="consulta.click.recargar"/>
+                        <!-- Errores -->
+                        <c:if test="${not empty error}">
+                            <div class="alert alert-danger animate-fade-in-up" style="margin-bottom: 16px;">
+                                <i class="fas fa-circle-exclamation"></i>
+                                <fmt:message key="${error}"/>
+                            </div>
+                        </c:if>
+
+                        <form action="${pageContext.request.contextPath}/consulta" method="post" id="formConsulta">
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-id-card"></i>
+                                    <fmt:message key="consulta.documento"/>
+                                </label>
+                                <input type="text" name="documento" class="form-control"
+                                       value="${documento}" required
+                                       placeholder="<fmt:message key='consulta.placeholder.documento'/>">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-shield-halved"></i>
+                                    <fmt:message key="consulta.captcha"/>
+                                </label>
+                                <div class="captcha-container">
+                                    <div class="captcha-img-wrapper">
+                                        <img src="${pageContext.request.contextPath}/captcha"
+                                             alt="CAPTCHA" class="captcha-img"
+                                             onclick="this.src = '${pageContext.request.contextPath}/captcha?' + Date.now()"
+                                             title="<fmt:message key='consulta.title.recargar'/>">
+                                    </div>
+                                    <div class="captcha-input-wrapper" style="flex: 1;">
+                                        <input type="text" name="captcha" class="form-control captcha-input"
+                                               maxlength="6" required
+                                               placeholder="<fmt:message key='consulta.placeholder.captcha'/>">
+                                        <div class="captcha-hint">
+                                            <i class="fas fa-rotate" style="font-size: 0.7rem;"></i>
+                                            <fmt:message key="consulta.click.recargar"/>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Google reCAPTCHA v2 - CONTENEDOR CON data-sitekey -->
-                        <div class="form-group">
-                            <div class="recaptcha-wrapper">
-                                <div id="recaptcha-container" class="g-recaptcha"
-                                     data-sitekey="6LdlRNMsAAAAAITPJ_SXztpmC-3qeDEZis8M4c5c"
-                                     data-callback="enableSubmit"
-                                     data-expired-callback="disableSubmit"></div>
+                            <!-- Google reCAPTCHA v2 -->
+                            <div class="form-group">
+                                <div class="recaptcha-wrapper">
+                                    <div id="recaptcha-container" class="g-recaptcha"
+                                         data-sitekey="6LdlRNMsAAAAAITPJ_SXztpmC-3qeDEZis8M4c5c"
+                                         data-callback="enableSubmit"
+                                         data-expired-callback="disableSubmit"></div>
+                                </div>
+                                <div class="recaptcha-error-msg" id="recaptcha-error" style="text-align: center; margin-top: 4px;">
+                                    <i class="fas fa-circle-exclamation"></i>
+                                    <fmt:message key="recaptcha.error"/>
+                                </div>
                             </div>
-                            <div class="recaptcha-error-msg" id="recaptcha-error" style="text-align: center; margin-top: 4px;">
-                                <i class="fas fa-circle-exclamation"></i>
-                                <fmt:message key="recaptcha.error"/>
-                            </div>
-                        </div>
 
-                        <button type="submit" class="btn btn-primary btn-consultar" id="btnConsultar" disabled>
-                            <i class="fas fa-magnifying-glass"></i>
-                            <fmt:message key="consulta.buscar"/>
-                        </button>
-                    </form>
+                            <button type="submit" class="btn btn-primary btn-consultar" id="btnConsultar" disabled>
+                                <i class="fas fa-magnifying-glass"></i>
+                                <fmt:message key="consulta.buscar"/>
+                            </button>
+                        </form>
 
-                    <!-- Resultados -->
+                    </c:if>
+                    <!-- fin formulario -->
+
+
+                    <!-- ============================================================
+                         RESULTADOS: solo se muestran cuando resultado == true
+                    ============================================================ -->
                     <c:if test="${resultado}">
                         <div class="resultados-section">
                             <div class="resultados-header">
@@ -132,6 +198,11 @@
                                                         <th><fmt:message key="tabla.fecha"/></th>
                                                         <th><fmt:message key="tabla.hora"/></th>
                                                         <th><fmt:message key="tabla.estado"/></th>
+                                                        <%-- NUEVA columna para el PDF --%>
+                                                        <th class="col-acciones">
+                                                            <i class="fas fa-file-pdf" style="margin-right:4px;"></i>
+                                                            <fmt:message key="tabla.comprobante" default="Comprobante"/>
+                                                        </th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -150,6 +221,16 @@
                                                                     <fmt:message key="cita.estado.${c.estado.toLowerCase()}"/>
                                                                 </span>
                                                             </td>
+                                                            <%-- BOTÓN PDF por cada cita --%>
+                                                            <td class="col-acciones">
+                                                                <a href="${pageContext.request.contextPath}/comprobante?id=${c.id}"
+                                                                   class="btn-pdf"
+                                                                   title="<fmt:message key='consulta.descargar.pdf' default='Descargar PDF'/>"
+                                                                   target="_blank">
+                                                                    <i class="fas fa-file-arrow-down"></i>
+                                                                    PDF
+                                                                </a>
+                                                            </td>
                                                         </tr>
                                                     </c:forEach>
                                                 </tbody>
@@ -165,8 +246,20 @@
                                     </div>
                                 </c:otherwise>
                             </c:choose>
+
+                            <%-- BOTÓN NUEVA CONSULTA: regresa al formulario limpio --%>
+                            <div style="text-align: center;">
+                                <a href="${pageContext.request.contextPath}/consulta"
+                                   class="btn-nueva-consulta">
+                                    <i class="fas fa-rotate-left"></i>
+                                    <fmt:message key="consulta.nueva" default="Nueva consulta"/>
+                                </a>
+                            </div>
+
                         </div>
                     </c:if>
+                    <!-- fin resultados -->
+
 
                     <!-- Link a login -->
                     <div class="login-link">
@@ -189,34 +282,28 @@
         <script src="${pageContext.request.contextPath}/resources/js/saludboyaca-swal.js"></script>
         <script src="${pageContext.request.contextPath}/resources/js/saludboyaca-i18n.js"></script>
 
+        <%-- El JS de reCAPTCHA solo corre si no hay resultados --%>
+        <c:if test="${not resultado}">
         <script>
-            // ============================================
-            // VARIABLES Y FUNCIONES GLOBALES PARA reCAPTCHA
-            // ============================================
             var recaptchaValidated = false;
             var recaptchaWidgetId = null;
 
-            // Función que se ejecuta cuando el usuario marca el captcha correctamente
             function enableSubmit() {
                 recaptchaValidated = true;
                 document.getElementById('btnConsultar').disabled = false;
                 document.getElementById('recaptcha-error').style.display = 'none';
             }
 
-            // Función que se ejecuta si el captcha expira o hay error
             function disableSubmit() {
                 recaptchaValidated = false;
                 document.getElementById('btnConsultar').disabled = true;
             }
 
-            // ============================================
-            // RENDERIZAR reCAPTCHA EXPLICITAMENTE
-            // ============================================
             function renderRecaptcha() {
-                const container = document.getElementById('recaptcha-container');
+                var container = document.getElementById('recaptcha-container');
                 if (container && typeof grecaptcha !== 'undefined' && recaptchaWidgetId === null) {
                     recaptchaWidgetId = grecaptcha.render('recaptcha-container', {
-                        'sitekey': 'TU_CLAVE_DE_SITIO_AQUI', // Reemplaza con tu Site Key de Google
+                        'sitekey': '6LdlRNMsAAAAAITPJ_SXztpmC-3qeDEZis8M4c5c',
                         'callback': enableSubmit,
                         'expired-callback': disableSubmit,
                         'error-callback': disableSubmit
@@ -224,42 +311,34 @@
                 }
             }
 
-            // ============================================
-            // CALLBACK PARA CUANDO LA API DE GOOGLE CARGA
-            // ============================================
             window.onRecaptchaLoad = function () {
-                console.log('[Consulta] reCAPTCHA API cargada');
                 renderRecaptcha();
             };
 
-            // Si grecaptcha ya está cargado (por ejemplo, al navegar atrás)
             if (typeof grecaptcha !== 'undefined') {
                 renderRecaptcha();
             }
 
-            // ============================================
-            // FORM SUBMIT
-            // ============================================
             document.getElementById('formConsulta').addEventListener('submit', function (e) {
                 if (!recaptchaValidated) {
                     e.preventDefault();
                     document.getElementById('recaptcha-error').style.display = 'block';
                     return false;
                 }
-
-                const btn = document.getElementById('btnConsultar');
+                var btn = document.getElementById('btnConsultar');
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Buscando...';
                 btn.disabled = true;
-
                 return true;
             });
 
             document.addEventListener('DOMContentLoaded', function () {
-                const docInput = document.querySelector('input[name="documento"]');
+                var docInput = document.querySelector('input[name="documento"]');
                 if (docInput && !docInput.value) {
                     docInput.focus();
                 }
             });
         </script>
+        </c:if>
+
     </body>
 </html>

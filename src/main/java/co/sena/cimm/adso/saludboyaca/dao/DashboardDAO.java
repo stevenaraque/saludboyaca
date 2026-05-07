@@ -28,9 +28,9 @@ public class DashboardDAO {
     }
     
     public int contarMedicos() {
-        String sql = "SELECT COUNT(*) FROM medicos";
-        return ejecutarConteo(sql);
-    }
+    String sql = "SELECT COUNT(*) FROM usuarios WHERE rol = 'MEDICO'";
+    return ejecutarConteo(sql);
+}
     
     public int contarEspecialidades() {
         String sql = "SELECT COUNT(*) FROM especialidades";
