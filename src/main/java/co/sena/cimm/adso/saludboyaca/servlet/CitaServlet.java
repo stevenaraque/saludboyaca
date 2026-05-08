@@ -47,10 +47,10 @@ public class CitaServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         String accion = request.getParameter("accion");
         if (accion == null) accion = "listar";
-        
+
         switch (accion) {
             case "listar":
                 listarCitas(request, response);
@@ -76,66 +76,94 @@ public class CitaServlet extends HttpServlet {
     }
 
     @Override
-protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    
-    request.setCharacterEncoding("UTF-8");
-    String idParam = request.getParameter("id");
-    
-    Cita cita = new Cita();
-    
-    try {
-        cita.setIdPaciente(Integer.parseInt(request.getParameter("pacienteId")));
-        cita.setIdMedico(Integer.parseInt(request.getParameter("medicoId")));
-        cita.setIdEspecialidad(Integer.parseInt(request.getParameter("especialidadId")));
-        
-        String fechaStr = request.getParameter("fechaCita");
-        if (fechaStr != null && !fechaStr.isEmpty()) {
-            cita.setFechaCita(dateFormat.parse(fechaStr));
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        String accion = request.getParameter("accion");
+
+        // cambiarEstado puede llegar por POST desde el formulario de detalle
+        if ("cambiarEstado".equals(accion)) {
+            cambiarEstadoCita(request, response);
+            return;
         }
-        
-        String horaStr = request.getParameter("horaCita");
-        if (horaStr != null && !horaStr.isEmpty()) {
-            cita.setHoraCita(Time.valueOf(horaStr + ":00"));
+
+        String idParam = request.getParameter("id");
+        Cita cita = new Cita();
+
+        try {
+            cita.setIdPaciente(Integer.parseInt(request.getParameter("pacienteId")));
+            cita.setIdMedico(Integer.parseInt(request.getParameter("medicoId")));
+            cita.setIdEspecialidad(Integer.parseInt(request.getParameter("especialidadId")));
+
+            String fechaStr = request.getParameter("fechaCita");
+            if (fechaStr != null && !fechaStr.isEmpty()) {
+                cita.setFechaCita(dateFormat.parse(fechaStr));
+            }
+
+            String horaStr = request.getParameter("horaCita");
+            if (horaStr != null && !horaStr.isEmpty()) {
+                // Asegurar formato HH:mm:ss para Time.valueOf
+                if (horaStr.length() == 5) horaStr = horaStr + ":00";
+                cita.setHoraCita(Time.valueOf(horaStr));
+            }
+
+        } catch (ParseException | NumberFormatException e) {
+            request.setAttribute("error", "Datos inválidos: " + e.getMessage());
+            mostrarFormulario(request, response, cita);
+            return;
         }
-        
-    } catch (ParseException | NumberFormatException e) {
-        request.setAttribute("error", "Datos invalidos: " + e.getMessage());
-        mostrarFormulario(request, response, cita);
-        return;
+
+        cita.setMotivo(request.getParameter("motivo"));
+
+        String estado = request.getParameter("estado");
+        cita.setEstado(estado != null && !estado.isEmpty() ? estado : "PROGRAMADA");
+
+        HttpSession session = request.getSession();
+        Usuario usuario = (Usuario) session.getAttribute("usuario");
+        cita.setIdRegistradoPor(usuario.getId());
+
+        boolean exito;
+
+        if (idParam != null && !idParam.isEmpty()) {
+            cita.setId(Integer.parseInt(idParam));
+            exito = citaDAO.actualizar(cita);
+        } else {
+            exito = citaDAO.insertar(cita);
+        }
+
+        if (exito) {
+            request.getSession().setAttribute("mensaje", 
+                idParam != null && !idParam.isEmpty() ? "Cita actualizada correctamente" : "Cita registrada correctamente");
+            response.sendRedirect(request.getContextPath() + "/citas");
+        } else {
+            request.setAttribute("error", "Error al guardar la cita. Verifique los datos.");
+            mostrarFormulario(request, response, cita);
+        }
     }
-    
-    cita.setMotivo(request.getParameter("motivo"));
-    
-    // CORREGIDO: respetar el estado enviado desde el formulario
-    String estado = request.getParameter("estado");
-    cita.setEstado(estado != null && !estado.isEmpty() ? estado : "PROGRAMADA");
-    
-    HttpSession session = request.getSession();
-    Usuario usuario = (Usuario) session.getAttribute("usuario");
-    cita.setIdRegistradoPor(usuario.getId());
-    
-    boolean exito;
-    
-    if (idParam != null && !idParam.isEmpty()) {
-        cita.setId(Integer.parseInt(idParam));
-        exito = citaDAO.actualizar(cita);
-    } else {
-        exito = citaDAO.insertar(cita);
-    }
-    
-    if (exito) {
-        response.sendRedirect(request.getContextPath() + "/citas");
-    } else {
-        request.setAttribute("error", "Error al guardar la cita");
-        mostrarFormulario(request, response, cita);
-    }
-}
 
     private void listarCitas(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        List<Cita> citas = citaDAO.listarTodas();
+
+        HttpSession session = request.getSession();
+        String rol = (String) session.getAttribute("usuarioRol");
+        List<Cita> citas;
+
+        // MÉDICO solo ve sus propias citas
+        if ("MEDICO".equals(rol)) {
+            Integer medicoId = (Integer) session.getAttribute("usuarioId");
+            citas = (medicoId != null) ? citaDAO.listarPorMedico(medicoId) : citaDAO.listarTodas();
+        } else {
+            citas = citaDAO.listarTodas();
+        }
+
+        // Recuperar mensaje flash si existe
+        String mensaje = (String) session.getAttribute("mensaje");
+        if (mensaje != null) {
+            request.setAttribute("mensaje", mensaje);
+            session.removeAttribute("mensaje");
+        }
+
         request.setAttribute("citas", citas);
         request.setAttribute("menu", "citas");
         request.getRequestDispatcher("/views/citas/lista.jsp").forward(request, response);
@@ -143,53 +171,69 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
 
     private void mostrarFormulario(HttpServletRequest request, HttpServletResponse response, Cita cita)
             throws ServletException, IOException {
-        
-        // Cargar datos para los selects
+
         List<Paciente> pacientes = pacienteDAO.listarTodos();
-        List<Usuario> medicos = usuarioDAO.listarTodos(); // Filtrar solo médicos en la vista
+        List<Usuario> medicos = usuarioDAO.listarTodos(); // solo médicos
         List<Especialidad> especialidades = especialidadDAO.listarTodas();
-        
+
         request.setAttribute("pacientes", pacientes);
         request.setAttribute("medicos", medicos);
         request.setAttribute("especialidades", especialidades);
         request.setAttribute("cita", cita);
         request.setAttribute("menu", "citas");
-        
+
+        // Preformatear fecha y hora para los inputs si estamos editando
+        if (cita != null) {
+            if (cita.getFechaCita() != null) {
+                request.setAttribute("fechaFormateada", dateFormat.format(cita.getFechaCita()));
+            }
+            if (cita.getHoraCita() != null) {
+                request.setAttribute("horaFormateada", timeFormat.format(cita.getHoraCita()));
+            }
+        }
+
         request.getRequestDispatcher("/views/citas/formulario.jsp").forward(request, response);
     }
 
     private void cargarParaEditar(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    
-    int id = Integer.parseInt(request.getParameter("id"));
-    Cita cita = citaDAO.buscarPorId(id);
-    
-    if (cita != null) {
-        // Formatear fecha para el input type="date" (yyyy-MM-dd)
-        if (cita.getFechaCita() != null) {
-            String fechaFormateada = dateFormat.format(cita.getFechaCita());
-            request.setAttribute("fechaFormateada", fechaFormateada);
+            throws ServletException, IOException {
+
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/citas");
+            return;
         }
-        
-        // Formatear hora para el input type="time" (HH:mm)
-        if (cita.getHoraCita() != null) {
-            String horaFormateada = timeFormat.format(cita.getHoraCita());
-            request.setAttribute("horaFormateada", horaFormateada);
+
+        int id = Integer.parseInt(idParam);
+        Cita cita = citaDAO.buscarPorId(id);
+
+        if (cita != null) {
+            mostrarFormulario(request, response, cita);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/citas");
         }
-        
-        mostrarFormulario(request, response, cita);
-    } else {
-        response.sendRedirect(request.getContextPath() + "/citas");
     }
-}
 
     private void verDetalle(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        int id = Integer.parseInt(request.getParameter("id"));
+
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/citas");
+            return;
+        }
+
+        int id = Integer.parseInt(idParam);
         Cita cita = citaDAO.buscarPorId(id);
-        
+
         if (cita != null) {
+            // Preformatear para mostrar en detalle
+            if (cita.getFechaCita() != null) {
+                request.setAttribute("fechaFormateada", dateFormat.format(cita.getFechaCita()));
+            }
+            if (cita.getHoraCita() != null) {
+                request.setAttribute("horaFormateada", timeFormat.format(cita.getHoraCita()));
+            }
             request.setAttribute("cita", cita);
             request.setAttribute("menu", "citas");
             request.getRequestDispatcher("/views/citas/detalle.jsp").forward(request, response);
@@ -200,28 +244,45 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
 
     private void cambiarEstadoCita(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        int id = Integer.parseInt(request.getParameter("id"));
+
+        String idParam = request.getParameter("id");
         String nuevoEstado = request.getParameter("estado");
-        
-        // Validar estados permitidos
-        if (nuevoEstado != null && (
-            nuevoEstado.equals("PROGRAMADA") || 
-            nuevoEstado.equals("CONFIRMADA") || 
-            nuevoEstado.equals("ATENDIDA") || 
-            nuevoEstado.equals("CANCELADA"))) {
-            
-            citaDAO.cambiarEstado(id, nuevoEstado);
+
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/citas");
+            return;
         }
-        
+
+        if (nuevoEstado != null && (
+                nuevoEstado.equals("PROGRAMADA") ||
+                nuevoEstado.equals("CONFIRMADA") ||
+                nuevoEstado.equals("ATENDIDA") ||
+                nuevoEstado.equals("CANCELADA"))) {
+
+            int id = Integer.parseInt(idParam);
+            boolean exito = citaDAO.cambiarEstado(id, nuevoEstado);
+            if (exito) {
+                request.getSession().setAttribute("mensaje", "Estado actualizado correctamente");
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/citas");
     }
 
     private void eliminarCita(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-        int id = Integer.parseInt(request.getParameter("id"));
-        citaDAO.eliminar(id);
+
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/citas");
+            return;
+        }
+
+        int id = Integer.parseInt(idParam);
+        boolean exito = citaDAO.eliminar(id);
+        if (exito) {
+            request.getSession().setAttribute("mensaje", "Cita eliminada correctamente");
+        }
         response.sendRedirect(request.getContextPath() + "/citas");
     }
 }

@@ -26,5 +26,6 @@ co\sena\cimm\adso\saludboyaca\dao\EspecialidadDAO.class
 co\sena\cimm\adso\saludboyaca\model\DashboardDAO.class
 co\sena\cimm\adso\saludboyaca\util\PDFGenerator$PDFHeaderFooterEvent.class
 co\sena\cimm\adso\saludboyaca\servlet\ConsultaCitaServlet.class
+co\sena\cimm\adso\saludboyaca\model\CitaResumenDTO.class
 co\sena\cimm\adso\saludboyaca\util\OTPService.class
 co\sena\cimm\adso\saludboyaca\dao\PacienteDAO.class

@@ -24,10 +24,34 @@ public class CitaDAO {
             stmt.setString(6, c.getMotivo());
             stmt.setString(7, c.getEstado());
             stmt.setInt(8, c.getIdRegistradoPor());
-
             return stmt.executeUpdate() > 0;
         } catch (SQLException ex) {
             System.err.println("Error en insertar: " + ex.getMessage());
+            return false;
+        } finally {
+            cerrarRecursos(null, stmt, conn);
+        }
+    }
+
+    public boolean actualizar(Cita c) {
+        String sql = "UPDATE citas SET id_paciente=?, id_medico=?, id_especialidad=?, fecha_cita=?, hora_cita=?, motivo=?, estado=? WHERE id=?";
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, c.getIdPaciente());
+            stmt.setInt(2, c.getIdMedico());
+            stmt.setInt(3, c.getIdEspecialidad());
+            stmt.setDate(4, new java.sql.Date(c.getFechaCita().getTime()));
+            stmt.setTime(5, c.getHoraCita());
+            stmt.setString(6, c.getMotivo());
+            stmt.setString(7, c.getEstado());
+            stmt.setInt(8, c.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.err.println("Error en actualizar: " + ex.getMessage());
             return false;
         } finally {
             cerrarRecursos(null, stmt, conn);
@@ -72,8 +96,10 @@ public class CitaDAO {
     }
 
     public List<Cita> listarTodas() {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
-                     "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
+        String sql = "SELECT c.*, " +
+                     "p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
+                     "u.nombres as nom_medico, u.apellidos as ape_medico, " +
+                     "e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
                      "JOIN usuarios u ON c.id_medico = u.id " +
@@ -82,9 +108,42 @@ public class CitaDAO {
         return listarConJoin(sql);
     }
 
+    public List<Cita> listarPorMedico(int medicoId) {
+        String sql = "SELECT c.*, " +
+                     "p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
+                     "u.nombres as nom_medico, u.apellidos as ape_medico, " +
+                     "e.nombre as nom_especialidad " +
+                     "FROM citas c " +
+                     "JOIN pacientes p ON c.id_paciente = p.id " +
+                     "JOIN usuarios u ON c.id_medico = u.id " +
+                     "JOIN especialidades e ON c.id_especialidad = e.id " +
+                     "WHERE c.id_medico = ? " +
+                     "ORDER BY c.fecha_cita DESC, c.hora_cita";
+        List<Cita> lista = new ArrayList<>();
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            conn = Conexion.getConnection();
+            stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, medicoId);
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                lista.add(mapearCitaConJoin(rs));
+            }
+        } catch (SQLException ex) {
+            System.err.println("Error en listarPorMedico: " + ex.getMessage());
+        } finally {
+            cerrarRecursos(rs, stmt, conn);
+        }
+        return lista;
+    }
+
     public List<Cita> listarPorPaciente(String documento) {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
-                     "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
+        String sql = "SELECT c.*, " +
+                     "p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
+                     "u.nombres as nom_medico, u.apellidos as ape_medico, " +
+                     "e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
                      "JOIN usuarios u ON c.id_medico = u.id " +
@@ -95,13 +154,11 @@ public class CitaDAO {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-
         try {
             conn = Conexion.getConnection();
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, documento);
             rs = stmt.executeQuery();
-
             while (rs.next()) {
                 lista.add(mapearCitaConJoin(rs));
             }
@@ -114,8 +171,10 @@ public class CitaDAO {
     }
 
     public Cita buscarPorId(int id) {
-        String sql = "SELECT c.*, p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
-                     "u.nombres as nom_medico, u.apellidos as ape_medico, e.nombre as nom_especialidad " +
+        String sql = "SELECT c.*, " +
+                     "p.nombres as nom_paciente, p.apellidos as ape_paciente, p.documento as documento_paciente, " +
+                     "u.nombres as nom_medico, u.apellidos as ape_medico, " +
+                     "e.nombre as nom_especialidad " +
                      "FROM citas c " +
                      "JOIN pacientes p ON c.id_paciente = p.id " +
                      "JOIN usuarios u ON c.id_medico = u.id " +
@@ -125,13 +184,11 @@ public class CitaDAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         Cita c = null;
-
         try {
             conn = Conexion.getConnection();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             rs = stmt.executeQuery();
-
             if (rs.next()) {
                 c = mapearCitaConJoin(rs);
             }
@@ -143,19 +200,15 @@ public class CitaDAO {
         return c;
     }
 
-    // ========== MÉTODOS PRIVADOS ==========
-
     private List<Cita> listarConJoin(String sql) {
         List<Cita> lista = new ArrayList<>();
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-
         try {
             conn = Conexion.getConnection();
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
-
             while (rs.next()) {
                 lista.add(mapearCitaConJoin(rs));
             }
@@ -165,31 +218,6 @@ public class CitaDAO {
             cerrarRecursos(rs, stmt, conn);
         }
         return lista;
-    }
-    
-    public boolean actualizar(Cita c) {
-        String sql = "UPDATE citas SET id_paciente=?, id_medico=?, id_especialidad=?, fecha_cita=?, hora_cita=?, motivo=? WHERE id=?";
-        Connection conn = null;
-        PreparedStatement stmt = null;
-
-        try {
-            conn = Conexion.getConnection();
-            stmt = conn.prepareStatement(sql);
-            stmt.setInt(1, c.getIdPaciente());
-            stmt.setInt(2, c.getIdMedico());
-            stmt.setInt(3, c.getIdEspecialidad());
-            stmt.setDate(4, new java.sql.Date(c.getFechaCita().getTime()));
-            stmt.setTime(5, c.getHoraCita());
-            stmt.setString(6, c.getMotivo());
-            stmt.setInt(7, c.getId());
-
-            return stmt.executeUpdate() > 0;
-        } catch (SQLException ex) {
-            System.err.println("Error en actualizar: " + ex.getMessage());
-            return false;
-        } finally {
-            cerrarRecursos(null, stmt, conn);
-        }
     }
 
     private Cita mapearCitaConJoin(ResultSet rs) throws SQLException {
@@ -205,13 +233,10 @@ public class CitaDAO {
         c.setObservaciones(rs.getString("observaciones"));
         c.setFechaRegistro(rs.getTimestamp("fecha_registro"));
         c.setIdRegistradoPor(rs.getInt("id_registrado_por"));
-
-        // Campos desnormalizados del JOIN
         c.setNombrePaciente(rs.getString("nom_paciente") + " " + rs.getString("ape_paciente"));
         c.setDocumentoPaciente(rs.getString("documento_paciente"));
         c.setNombreMedico(rs.getString("nom_medico") + " " + rs.getString("ape_medico"));
         c.setNombreEspecialidad(rs.getString("nom_especialidad"));
-
         return c;
     }
 

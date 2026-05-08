@@ -201,7 +201,7 @@
                                                         <%-- NUEVA columna para el PDF --%>
                                                         <th class="col-acciones">
                                                             <i class="fas fa-file-pdf" style="margin-right:4px;"></i>
-                                                            <fmt:message key="tabla.comprobante" default="Comprobante"/>
+                                                            <fmt:message key="tabla.comprobante"/>
                                                         </th>
                                                     </tr>
                                                 </thead>
@@ -223,9 +223,10 @@
                                                             </td>
                                                             <%-- BOTÓN PDF por cada cita --%>
                                                             <td class="col-acciones">
-                                                                <a href="${pageContext.request.contextPath}/comprobante?id=${c.id}"
+                                                                <fmt:message key="consulta.descargar.pdf" var="tooltipPdf"/>
+                                                                <a href="${pageContext.request.contextPath}/comprobante?id=${c.id}&doc=${documento}"
                                                                    class="btn-pdf"
-                                                                   title="<fmt:message key='consulta.descargar.pdf' default='Descargar PDF'/>"
+                                                                   title="${tooltipPdf}"
                                                                    target="_blank">
                                                                     <i class="fas fa-file-arrow-down"></i>
                                                                     PDF
@@ -252,7 +253,7 @@
                                 <a href="${pageContext.request.contextPath}/consulta"
                                    class="btn-nueva-consulta">
                                     <i class="fas fa-rotate-left"></i>
-                                    <fmt:message key="consulta.nueva" default="Nueva consulta"/>
+                                    <fmt:message key="consulta.nueva"/>
                                 </a>
                             </div>
 

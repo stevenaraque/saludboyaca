@@ -123,13 +123,22 @@
 
             <!-- SECCIÓN PRINCIPAL: TABLA + ACCESO RÁPIDO -->
             <div class="row g-4 mb-4">
-                <!-- Tabla de citas recientes -->
+
+                <!-- Tabla de citas de hoy -->
                 <div class="col-12 col-lg-8 animate-fade-in-up delay-3">
                     <div class="glass-card h-100">
                         <div class="glass-card-header flex-wrap gap-2">
                             <h5 class="mb-0">
                                 <i class="fas fa-list-check"></i>
-                                <fmt:message key="dashboard.citas.recientes"/>
+                                <%-- Título dinámico según rol --%>
+                                <c:choose>
+                                    <c:when test="${sessionScope.usuarioRol == 'MEDICO'}">
+                                        <fmt:message key="dashboard.mis.citas.hoy"/>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <fmt:message key="dashboard.citas.hoy.titulo"/>
+                                    </c:otherwise>
+                                </c:choose>
                             </h5>
                             <div class="d-flex gap-2">
                                 <c:if test="${sessionScope.usuarioRol == 'MEDICO' || sessionScope.usuarioRol == 'RECEPCIONISTA'}">
@@ -164,7 +173,8 @@
                                                     <td colspan="6" class="text-center py-4">
                                                         <div class="empty-state">
                                                             <i class="fas fa-clipboard-list"></i>
-                                                            <p><fmt:message key="dashboard.sin.citas"/></p>
+                                                            <%-- CORRECCIÓN: key unificada a dashboard.sin.citas.hoy --%>
+                                                            <p><fmt:message key="dashboard.sin.citas.hoy"/></p>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -199,9 +209,27 @@
                                                             </span>
                                                         </td>
                                                         <td class="text-end">
-                                                            <a href="${pageContext.request.contextPath}/citas?accion=ver&id=${c.id}" class="btn-action btn-action-view" title="<fmt:message key='btn.ver'/>">
+                                                            <a href="${pageContext.request.contextPath}/citas?accion=ver&id=${c.id}"
+                                                               class="btn-action btn-action-view"
+                                                               title="<fmt:message key='btn.ver'/>">
                                                                 <i class="fas fa-eye"></i>
                                                             </a>
+                                                            <%-- Botón atender solo para MEDICO --%>
+                                                            <c:if test="${sessionScope.usuarioRol == 'MEDICO'}">
+                                                                <a href="${pageContext.request.contextPath}/citas?accion=atender&id=${c.id}"
+                                                                   class="btn-action btn-action-edit"
+                                                                   title="<fmt:message key='btn.atender'/>">
+                                                                    <i class="fas fa-stethoscope"></i>
+                                                                </a>
+                                                            </c:if>
+                                                            <%-- Botón editar solo para RECEPCIONISTA --%>
+                                                            <c:if test="${sessionScope.usuarioRol == 'RECEPCIONISTA'}">
+                                                                <a href="${pageContext.request.contextPath}/citas?accion=editar&id=${c.id}"
+                                                                   class="btn-action btn-action-edit"
+                                                                   title="<fmt:message key='btn.editar'/>">
+                                                                    <i class="fas fa-pen"></i>
+                                                                </a>
+                                                            </c:if>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -223,6 +251,8 @@
                         </h6>
 
                         <c:choose>
+
+                            <%-- ACCESO RÁPIDO: RECEPCIONISTA --%>
                             <c:when test="${sessionScope.usuarioRol == 'RECEPCIONISTA'}">
                                 <a href="${pageContext.request.contextPath}/citas?accion=nuevo" class="quick-access-link">
                                     <div class="d-flex align-items-center gap-3">
@@ -262,7 +292,20 @@
                                 </a>
                             </c:when>
 
+                            <%-- ACCESO RÁPIDO: MEDICO --%>
                             <c:when test="${sessionScope.usuarioRol == 'MEDICO'}">
+                                <a href="${pageContext.request.contextPath}/citas?accion=nuevo" class="quick-access-link">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="quick-icon">
+                                            <i class="fas fa-plus-circle"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold"><fmt:message key="btn.nueva.cita"/></div>
+                                            <small class="quick-desc"><fmt:message key="btn.nueva.cita.desc"/></small>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-chevron-right quick-arrow"></i>
+                                </a>
                                 <a href="${pageContext.request.contextPath}/citas?accion=listar" class="quick-access-link">
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="quick-icon">
@@ -289,6 +332,7 @@
                                 </a>
                             </c:when>
 
+                            <%-- ACCESO RÁPIDO: ENFERMERO --%>
                             <c:when test="${sessionScope.usuarioRol == 'ENFERMERO'}">
                                 <a href="${pageContext.request.contextPath}/citas?accion=listar" class="quick-access-link">
                                     <div class="d-flex align-items-center gap-3">
@@ -315,12 +359,13 @@
                                     <i class="fas fa-chevron-right quick-arrow"></i>
                                 </a>
                             </c:when>
+
                         </c:choose>
                     </div>
                 </div>
             </div>
 
-            <!-- SECCIÓN INFERIOR: INFO + STATS -->
+            <!-- SECCIÓN INFERIOR: INFO INSTITUCIÓN + STATS -->
             <div class="row g-4">
                 <div class="col-12 col-lg-8 animate-fade-in-up delay-5">
                     <div class="glass-card">
@@ -388,7 +433,8 @@
                     </div>
                 </div>
             </div>
-        </div>
+
+        </div><!-- fin container -->
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

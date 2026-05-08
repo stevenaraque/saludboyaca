@@ -12,12 +12,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
         <c:choose>
-            <c:when test="${cita != null}">
-                <fmt:message key="cita.editar.titulo"/>
-            </c:when>
-            <c:otherwise>
-                <fmt:message key="cita.nuevo.titulo"/>
-            </c:otherwise>
+            <c:when test="${cita != null}"><fmt:message key="cita.editar.titulo"/></c:when>
+            <c:otherwise><fmt:message key="cita.nuevo.titulo"/></c:otherwise>
         </c:choose> - SaludBoyacá
     </title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +23,7 @@
     <link href="${pageContext.request.contextPath}/resources/css/saludboyaca.css" rel="stylesheet">
 </head>
 <body class="bg-body">
-    
+
     <jsp:include page="../templates/header.jsp">
         <jsp:param name="menu" value="citas"/>
     </jsp:include>
@@ -41,23 +37,15 @@
                     <h2 class="font-title mb-1">
                         <i class="fas ${cita != null ? 'fa-calendar-edit' : 'fa-calendar-plus'} me-2"></i>
                         <c:choose>
-                            <c:when test="${cita != null}">
-                                <fmt:message key="cita.editar.titulo"/>
-                            </c:when>
-                            <c:otherwise>
-                                <fmt:message key="cita.nuevo.titulo"/>
-                            </c:otherwise>
+                            <c:when test="${cita != null}"><fmt:message key="cita.editar.titulo"/></c:when>
+                            <c:otherwise><fmt:message key="cita.nuevo.titulo"/></c:otherwise>
                         </c:choose>
                     </h2>
                     <p class="mb-0 opacity-75">
                         <i class="fas fa-info-circle me-1"></i>
                         <c:choose>
-                            <c:when test="${cita != null}">
-                                <fmt:message key="cita.subtitulo.editar"/>
-                            </c:when>
-                            <c:otherwise>
-                                <fmt:message key="cita.subtitulo.nuevo"/>
-                            </c:otherwise>
+                            <c:when test="${cita != null}"><fmt:message key="cita.subtitulo.editar"/></c:when>
+                            <c:otherwise><fmt:message key="cita.subtitulo.nuevo"/></c:otherwise>
                         </c:choose>
                     </p>
                 </div>
@@ -78,30 +66,30 @@
                         <h5 class="mb-0">
                             <i class="fas ${cita != null ? 'fa-calendar-edit' : 'fa-calendar-plus'}"></i>
                             <c:choose>
-                                <c:when test="${cita != null}">
-                                    <fmt:message key="cita.info.editar"/>
-                                </c:when>
-                                <c:otherwise>
-                                    <fmt:message key="cita.info.nuevo"/>
-                                </c:otherwise>
+                                <c:when test="${cita != null}"><fmt:message key="cita.info.editar"/></c:when>
+                                <c:otherwise><fmt:message key="cita.info.nuevo"/></c:otherwise>
                             </c:choose>
                         </h5>
                     </div>
-                    
+
                     <div class="glass-card-body">
+
                         <c:if test="${not empty error}">
-                            <div class="alert alert-danger">
-                                <i class="fas fa-circle-exclamation"></i>
-                                ${error}
+                            <div class="alert alert-danger mb-3">
+                                <i class="fas fa-circle-exclamation me-2"></i>${error}
                             </div>
                         </c:if>
 
+                        <%-- action apunta siempre a /citas, el id distingue insertar vs actualizar --%>
                         <form action="${pageContext.request.contextPath}/citas" method="post">
+
+                            <%-- Si estamos editando, enviamos el id --%>
                             <c:if test="${cita != null}">
-                                <input type="hidden" name="id" value="${cita.id}">
+                                <input type="hidden" name="id" value="${cita.id}"/>
                             </c:if>
 
                             <div class="form-row">
+                                <!-- PACIENTE -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -112,14 +100,16 @@
                                         <select name="pacienteId" class="form-select" required>
                                             <option value=""><fmt:message key="cita.select.paciente"/></option>
                                             <c:forEach items="${pacientes}" var="p">
-                                                <%-- CORREGIDO: cita.idPaciente en lugar de cita.pacienteId --%>
-                                                <option value="${p.id}" ${cita.idPaciente == p.id ? 'selected' : ''}>
+                                                <option value="${p.id}"
+                                                    <c:if test="${cita != null && cita.idPaciente == p.id}">selected</c:if>>
                                                     ${p.nombreCompleto} - ${p.documento}
                                                 </option>
                                             </c:forEach>
                                         </select>
                                     </div>
                                 </div>
+
+                                <!-- MÉDICO -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -130,8 +120,8 @@
                                         <select name="medicoId" class="form-select" required>
                                             <option value=""><fmt:message key="cita.select.medico"/></option>
                                             <c:forEach items="${medicos}" var="m">
-                                                <%-- CORREGIDO: cita.idMedico en lugar de cita.medicoId --%>
-                                                <option value="${m.id}" ${cita.idMedico == m.id ? 'selected' : ''}>
+                                                <option value="${m.id}"
+                                                    <c:if test="${cita != null && cita.idMedico == m.id}">selected</c:if>>
                                                     ${m.nombreCompleto} - ${m.especialidad}
                                                 </option>
                                             </c:forEach>
@@ -141,6 +131,7 @@
                             </div>
 
                             <div class="form-row">
+                                <!-- FECHA — usa fechaFormateada del servlet, nunca cita.fechaCita directamente -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -148,10 +139,12 @@
                                             <fmt:message key="cita.fecha"/>
                                             <span class="required">*</span>
                                         </label>
-                                        <input type="date" name="fechaCita" class="form-control" 
-                                               value="${cita.fechaCita}" required>
+                                        <input type="date" name="fechaCita" class="form-control"
+                                               value="${fechaFormateada}" required/>
                                     </div>
                                 </div>
+
+                                <!-- HORA — usa horaFormateada del servlet -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -159,13 +152,14 @@
                                             <fmt:message key="cita.hora"/>
                                             <span class="required">*</span>
                                         </label>
-                                        <input type="time" name="horaCita" class="form-control" 
-                                               value="${cita.horaCita}" required>
+                                        <input type="time" name="horaCita" class="form-control"
+                                               value="${horaFormateada}" required/>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="form-row">
+                                <!-- ESPECIALIDAD -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -176,14 +170,16 @@
                                         <select name="especialidadId" class="form-select" required>
                                             <option value=""><fmt:message key="cita.select.especialidad"/></option>
                                             <c:forEach items="${especialidades}" var="e">
-                                                <%-- CORREGIDO: cita.idEspecialidad en lugar de cita.especialidadId --%>
-                                                <option value="${e.id}" ${cita.idEspecialidad == e.id ? 'selected' : ''}>
+                                                <option value="${e.id}"
+                                                    <c:if test="${cita != null && cita.idEspecialidad == e.id}">selected</c:if>>
                                                     ${e.nombre}
                                                 </option>
                                             </c:forEach>
                                         </select>
                                     </div>
                                 </div>
+
+                                <!-- ESTADO -->
                                 <div class="form-col">
                                     <div class="form-group">
                                         <label class="form-label">
@@ -192,16 +188,16 @@
                                             <span class="required">*</span>
                                         </label>
                                         <select name="estado" class="form-select" required>
-                                            <option value="PROGRAMADA" ${cita.estado == 'PROGRAMADA' ? 'selected' : ''}>
+                                            <option value="PROGRAMADA" <c:if test="${cita == null || cita.estado == 'PROGRAMADA'}">selected</c:if>>
                                                 <fmt:message key="cita.estado.programada"/>
                                             </option>
-                                            <option value="CONFIRMADA" ${cita.estado == 'CONFIRMADA' ? 'selected' : ''}>
+                                            <option value="CONFIRMADA" <c:if test="${cita != null && cita.estado == 'CONFIRMADA'}">selected</c:if>>
                                                 <fmt:message key="cita.estado.confirmada"/>
                                             </option>
-                                            <option value="ATENDIDA" ${cita.estado == 'ATENDIDA' ? 'selected' : ''}>
+                                            <option value="ATENDIDA" <c:if test="${cita != null && cita.estado == 'ATENDIDA'}">selected</c:if>>
                                                 <fmt:message key="cita.estado.atendida"/>
                                             </option>
-                                            <option value="CANCELADA" ${cita.estado == 'CANCELADA' ? 'selected' : ''}>
+                                            <option value="CANCELADA" <c:if test="${cita != null && cita.estado == 'CANCELADA'}">selected</c:if>>
                                                 <fmt:message key="cita.estado.cancelada"/>
                                             </option>
                                         </select>
@@ -209,6 +205,7 @@
                                 </div>
                             </div>
 
+                            <!-- MOTIVO -->
                             <div class="form-group">
                                 <label class="form-label">
                                     <i class="fas fa-align-left"></i>
@@ -218,6 +215,7 @@
                                           placeholder="<fmt:message key='cita.placeholder.motivo'/>">${cita.motivo}</textarea>
                             </div>
 
+                            <!-- BOTONES -->
                             <div class="form-actions">
                                 <a href="${pageContext.request.contextPath}/citas" class="btn btn-outline">
                                     <i class="fas fa-times"></i>
@@ -228,6 +226,7 @@
                                     <fmt:message key="cita.guardar"/>
                                 </button>
                             </div>
+
                         </form>
                     </div>
                 </div>
