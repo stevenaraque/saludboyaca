@@ -1,5 +1,7 @@
-package co.sena.cimm.adso.saludboyaca.model;
+package co.sena.cimm.adso.saludboyaca.dao;
 
+import co.sena.cimm.adso.saludboyaca.dto.CitaResumenDTO;
+import co.sena.cimm.adso.saludboyaca.model.Conexion;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -43,14 +45,14 @@ public class DashboardDAO {
     public List<CitaResumenDTO> getCitasHoy() {
         String sql = """
                 SELECT c.id,
-                       CONCAT(p.nombre, ' ', p.apellido) AS pacienteNombre,
-                       e.nombre                          AS especialidadNombre,
-                       c.fecha_cita                      AS fechaCita,
-                       c.hora_cita                       AS horaCita,
+                       CONCAT(p.nombres, ' ', p.apellidos) AS pacienteNombre,
+                       e.nombre                            AS especialidadNombre,
+                       c.fecha_cita                        AS fechaCita,
+                       c.hora_cita                         AS horaCita,
                        c.estado
                 FROM citas c
-                JOIN pacientes p    ON c.paciente_id    = p.id
-                JOIN especialidades e ON c.especialidad_id = e.id
+                JOIN pacientes p      ON c.id_paciente    = p.id
+                JOIN especialidades e ON c.id_especialidad = e.id
                 WHERE c.fecha_cita = CURDATE()
                 ORDER BY c.hora_cita ASC
                 LIMIT 10
@@ -62,16 +64,16 @@ public class DashboardDAO {
     public List<CitaResumenDTO> getCitasHoyPorMedico(int medicoId) {
         String sql = """
                 SELECT c.id,
-                       CONCAT(p.nombre, ' ', p.apellido) AS pacienteNombre,
-                       e.nombre                          AS especialidadNombre,
-                       c.fecha_cita                      AS fechaCita,
-                       c.hora_cita                       AS horaCita,
+                       CONCAT(p.nombres, ' ', p.apellidos) AS pacienteNombre,
+                       e.nombre                            AS especialidadNombre,
+                       c.fecha_cita                        AS fechaCita,
+                       c.hora_cita                         AS horaCita,
                        c.estado
                 FROM citas c
-                JOIN pacientes p    ON c.paciente_id    = p.id
-                JOIN especialidades e ON c.especialidad_id = e.id
+                JOIN pacientes p      ON c.id_paciente    = p.id
+                JOIN especialidades e ON c.id_especialidad = e.id
                 WHERE c.fecha_cita = CURDATE()
-                  AND c.medico_id  = ?
+                  AND c.id_medico   = ?
                 ORDER BY c.hora_cita ASC
                 LIMIT 10
                 """;

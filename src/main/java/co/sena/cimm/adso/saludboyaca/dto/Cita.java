@@ -147,4 +147,24 @@ public class Cita {
     public void setNombreEspecialidad(String nombreEspecialidad) {
         this.nombreEspecialidad = nombreEspecialidad;
     }
+
+    public boolean estaProgramada() {
+        return "PROGRAMADA".equalsIgnoreCase(estado);
+    }
+
+    public boolean estaConfirmada() {
+        return "CONFIRMADA".equalsIgnoreCase(estado);
+    }
+
+    public boolean estaCancelada() {
+        return "CANCELADA".equalsIgnoreCase(estado);
+    }
+
+    public boolean tieneObservaciones() {
+        return observaciones != null && !observaciones.isBlank();
+    }
+
+    public String getResumenCita() {
+        return nombrePaciente + " - " + nombreEspecialidad + " (" + fechaCita + ")";
+    }
 }

@@ -1,6 +1,6 @@
-package co.sena.cimm.adso.saludboyaca.controller;
+package co.sena.cimm.adso.saludboyaca.servlet;
 
-import co.sena.cimm.adso.saludboyaca.model.DashboardDAO;
+import co.sena.cimm.adso.saludboyaca.dao.DashboardDAO;
 import java.io.IOException;
 import java.util.List;
 import javax.servlet.ServletException;

@@ -1,4 +1,3 @@
-C:\Users\USER\Desktop\saludboyaca\src\main\java\CitaResumenDTO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\CitaDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\DashboardDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\EspecialidadDAO.java
@@ -7,6 +6,7 @@ C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\da
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\PacienteDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dao\UsuarioDAO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dto\Cita.java
+C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dto\CitaResumenDTO.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dto\Especialidad.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dto\Horario.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\dto\Paciente.java
@@ -27,3 +27,4 @@ C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\ut
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\util\LocaleFilter.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\util\OTPService.java
 C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\util\PDFGenerator.java
+C:\Users\USER\Desktop\saludboyaca\src\main\java\co\sena\cimm\adso\saludboyaca\util\ValidadorDocumento.java

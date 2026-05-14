@@ -8,14 +8,73 @@ import java.util.List;
 
 public class PacienteDAO {
 
+    // ── CAMBIO 1: Campo para conexión externa (pruebas) ─────────
+    private Connection conexionExterna; // null = usar Conexion.getConnection()
+
+    // ── CAMBIO 2: Constructores ───────────────────────────────────
+    public PacienteDAO() {
+        this.conexionExterna = null;
+    }
+
+    // Constructor para pruebas de integración
+    public PacienteDAO(Connection conexion) {
+        this.conexionExterna = conexion;
+    }
+
+    // ── CAMBIO 3: Método auxiliar ───────────────────────────────────
+    private Connection obtenerConexion() throws SQLException {
+        return conexionExterna != null ? conexionExterna : Conexion.getConnection();
+    }
+    
     public boolean insertar(Paciente p) {
         String sql = "INSERT INTO pacientes (nombres, apellidos, documento, fecha_nacimiento, telefono, email, eps, vereda_barrio) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        return ejecutarUpdate(sql, p, false);
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = obtenerConexion(); // ← reemplazado
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, p.getNombres());
+            stmt.setString(2, p.getApellidos());
+            stmt.setString(3, p.getDocumento());
+            stmt.setDate(4, new java.sql.Date(p.getFechaNacimiento().getTime()));
+            stmt.setString(5, p.getTelefono());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getEps());
+            stmt.setString(8, p.getVeredaBarrio());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.err.println("Error en insertar: " + ex.getMessage());
+            return false;
+        } finally {
+            cerrarRecursos(null, stmt, conn);
+        }
     }
 
     public boolean actualizar(Paciente p) {
         String sql = "UPDATE pacientes SET nombres=?, apellidos=?, documento=?, fecha_nacimiento=?, telefono=?, email=?, eps=?, vereda_barrio=? WHERE id=?";
-        return ejecutarUpdate(sql, p, true);
+        Connection conn = null;
+        PreparedStatement stmt = null;
+
+        try {
+            conn = obtenerConexion(); // ← reemplazado
+            stmt = conn.prepareStatement(sql);
+            stmt.setString(1, p.getNombres());
+            stmt.setString(2, p.getApellidos());
+            stmt.setString(3, p.getDocumento());
+            stmt.setDate(4, new java.sql.Date(p.getFechaNacimiento().getTime()));
+            stmt.setString(5, p.getTelefono());
+            stmt.setString(6, p.getEmail());
+            stmt.setString(7, p.getEps());
+            stmt.setString(8, p.getVeredaBarrio());
+            stmt.setInt(9, p.getId());
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException ex) {
+            System.err.println("Error en actualizar: " + ex.getMessage());
+            return false;
+        } finally {
+            cerrarRecursos(null, stmt, conn);
+        }
     }
 
     public boolean eliminar(int id) {
@@ -24,7 +83,7 @@ public class PacienteDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
@@ -49,7 +108,7 @@ public class PacienteDAO {
         Paciente p = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, documento);
             rs = stmt.executeQuery();
@@ -73,7 +132,7 @@ public class PacienteDAO {
         ResultSet rs = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
 
@@ -111,7 +170,7 @@ public class PacienteDAO {
         Paciente p = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             rs = stmt.executeQuery();
@@ -132,7 +191,7 @@ public class PacienteDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, p.getNombres());
             stmt.setString(2, p.getApellidos());
@@ -160,7 +219,10 @@ public class PacienteDAO {
         try {
             if (rs != null) rs.close();
             if (stmt != null) stmt.close();
-            if (conn != null) Conexion.closeConnection(conn);
+            // Solo cerramos conexión si NO es externa (pruebas)
+            if (conexionExterna == null && conn != null) {
+                Conexion.closeConnection(conn);
+            }
         } catch (SQLException ex) {
             System.err.println("Error cerrando recursos: " + ex.getMessage());
         }

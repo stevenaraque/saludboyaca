@@ -8,6 +8,23 @@ import java.util.List;
 
 public class UsuarioDAO {
 
+    // ── CAMBIO 1: Campo para conexión externa (pruebas) ─────────
+    private Connection conexionExterna;
+
+    // ── CAMBIO 2: Constructores ───────────────────────────────────
+    public UsuarioDAO() {
+        this.conexionExterna = null;
+    }
+
+    public UsuarioDAO(Connection conexion) {
+        this.conexionExterna = conexion;
+    }
+
+    // ── CAMBIO 3: Método auxiliar ───────────────────────────────────
+    private Connection obtenerConexion() throws SQLException {
+        return conexionExterna != null ? conexionExterna : Conexion.getConnection();
+    }
+
     public Usuario validarLogin(String username, String password) {
         String sql = "SELECT * FROM usuarios WHERE username = ? AND password = ? AND activo = 1";
         Connection conn = null;
@@ -16,7 +33,7 @@ public class UsuarioDAO {
         Usuario usuario = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, username);
             stmt.setString(2, password);
@@ -41,7 +58,7 @@ public class UsuarioDAO {
         Usuario usuario = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             rs = stmt.executeQuery();
@@ -65,7 +82,7 @@ public class UsuarioDAO {
         ResultSet rs = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
 
@@ -96,7 +113,7 @@ public class UsuarioDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
@@ -131,7 +148,7 @@ public class UsuarioDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion(); // ← reemplazado
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, u.getNombres());
             stmt.setString(2, u.getApellidos());
@@ -159,7 +176,10 @@ public class UsuarioDAO {
         try {
             if (rs != null) rs.close();
             if (stmt != null) stmt.close();
-            if (conn != null) Conexion.closeConnection(conn);
+            // Solo cerramos conexión si NO es externa (pruebas)
+            if (conexionExterna == null && conn != null) {
+                Conexion.closeConnection(conn);
+            }
         } catch (SQLException ex) {
             System.err.println("Error cerrando recursos: " + ex.getMessage());
         }

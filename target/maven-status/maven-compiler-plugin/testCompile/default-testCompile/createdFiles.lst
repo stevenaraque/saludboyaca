@@ -1,0 +1,9 @@
+co\sena\cimm\adso\saludboyaca\dao\UsuarioDAOTest.class
+co\sena\cimm\adso\saludboyaca\dao\CitaDAOTest.class
+co\sena\cimm\adso\saludboyaca\util\OTPServiceTest.class
+co\sena\cimm\adso\saludboyaca\dao\PacienteDAOTest.class
+co\sena\cimm\adso\saludboyaca\dto\CitaTest.class
+co\sena\cimm\adso\saludboyaca\dto\PacienteTest.class
+co\sena\cimm\adso\saludboyaca\dto\UsuarioTest.class
+co\sena\cimm\adso\saludboyaca\dao\ConexionTestHelper.class
+co\sena\cimm\adso\saludboyaca\util\ValidadorDocumentoTest.class

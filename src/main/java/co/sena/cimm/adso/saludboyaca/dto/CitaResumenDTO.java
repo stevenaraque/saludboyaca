@@ -1,4 +1,4 @@
-package co.sena.cimm.adso.saludboyaca.model;
+package co.sena.cimm.adso.saludboyaca.dto;
 
 public class CitaResumenDTO {
     private int id;

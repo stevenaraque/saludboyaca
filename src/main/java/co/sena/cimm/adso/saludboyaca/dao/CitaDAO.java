@@ -8,13 +8,30 @@ import java.util.List;
 
 public class CitaDAO {
 
+    // ── CAMBIO 1: Campo para conexión externa (pruebas) ─────────
+    private Connection conexionExterna;
+
+    // ── CAMBIO 2: Constructores ───────────────────────────────────
+    public CitaDAO() {
+        this.conexionExterna = null;
+    }
+
+    public CitaDAO(Connection conexion) {
+        this.conexionExterna = conexion;
+    }
+
+    // ── CAMBIO 3: Método auxiliar ───────────────────────────────────
+    private Connection obtenerConexion() throws SQLException {
+        return conexionExterna != null ? conexionExterna : Conexion.getConnection();
+    }
+
     public boolean insertar(Cita c) {
         String sql = "INSERT INTO citas (id_paciente, id_medico, id_especialidad, fecha_cita, hora_cita, motivo, estado, id_registrado_por) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Connection conn = null;
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, c.getIdPaciente());
             stmt.setInt(2, c.getIdMedico());
@@ -39,7 +56,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, c.getIdPaciente());
             stmt.setInt(2, c.getIdMedico());
@@ -64,7 +81,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, nuevoEstado);
             stmt.setInt(2, idCita);
@@ -83,7 +100,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
 
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             return stmt.executeUpdate() > 0;
@@ -124,7 +141,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, medicoId);
             rs = stmt.executeQuery();
@@ -155,7 +172,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setString(1, documento);
             rs = stmt.executeQuery();
@@ -185,7 +202,7 @@ public class CitaDAO {
         ResultSet rs = null;
         Cita c = null;
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             stmt.setInt(1, id);
             rs = stmt.executeQuery();
@@ -206,7 +223,7 @@ public class CitaDAO {
         PreparedStatement stmt = null;
         ResultSet rs = null;
         try {
-            conn = Conexion.getConnection();
+            conn = obtenerConexion();
             stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
             while (rs.next()) {
@@ -244,7 +261,9 @@ public class CitaDAO {
         try {
             if (rs != null) rs.close();
             if (stmt != null) stmt.close();
-            if (conn != null) Conexion.closeConnection(conn);
+            if (conexionExterna == null && conn != null) {
+                Conexion.closeConnection(conn);
+            }
         } catch (SQLException ex) {
             System.err.println("Error cerrando recursos: " + ex.getMessage());
         }
